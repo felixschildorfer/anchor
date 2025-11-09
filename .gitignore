@@ -4,3 +4,18 @@
 .settings/org.eclipse.wst.jsdt.ui.superType.name
 .DS_Store
 *.exe
+
+# Node.js / Electron
+node_modules/
+package-lock.json
+npm-debug.log
+yarn-error.log
+
+# Electron build outputs
+out/
+dist/
+*.dmg
+*.zip
+*.deb
+*.rpm
+*.AppImage
