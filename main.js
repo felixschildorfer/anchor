@@ -4,6 +4,30 @@ const fs = require('fs');
 
 let mainWindow;
 
+// Graceful shutdown: handle OS signals so the Electron app quits when
+// the user sends SIGINT/SIGTERM (for example via Ctrl+C or kill).
+function setupSignalHandlers() {
+  // SIGINT is sent by Ctrl+C in a terminal
+  process.on('SIGINT', () => {
+    try {
+      // let Electron perform its normal shutdown
+      app.quit();
+    } catch (e) {
+      process.exit(0);
+    }
+  });
+
+  // SIGTERM is a polite termination signal (used by many process managers)
+  process.on('SIGTERM', () => {
+    try {
+      app.quit();
+    } catch (e) {
+      process.exit(0);
+    }
+  });
+}
+
+setupSignalHandlers();
 function createWindow() {
   // Create the browser window
   mainWindow = new BrowserWindow({
@@ -205,6 +229,23 @@ app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit();
   }
+});
+
+// App lifecycle cleanup hooks
+app.on('before-quit', (event) => {
+  // Notify renderer(s) that we are quitting so they can persist state if needed
+  try {
+    if (mainWindow && mainWindow.webContents) {
+      mainWindow.webContents.send('app-before-quit');
+    }
+  } catch (e) {
+    // ignore errors during shutdown
+  }
+});
+
+app.on('will-quit', (event) => {
+  // Perform any synchronous cleanup here (closing files, stopping timers, etc.)
+  // This hook is mainly a placeholder so future cleanup can be added centrally.
 });
 
 // Security: Prevent new window creation
